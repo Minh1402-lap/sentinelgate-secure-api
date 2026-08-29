@@ -1,0 +1,13 @@
+# Local environment files can contain secrets.
+.env
+
+# JavaScript dependencies.
+node_modules/
+dist/
+generated/
+
+# Runtime logs.
+*.log
+
+# Generated security event streams.
+security-events/*.ndjson
