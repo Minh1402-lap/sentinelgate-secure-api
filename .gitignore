@@ -11,3 +11,6 @@ generated/
 
 # Generated security event streams.
 security-events/*.ndjson
+
+# Machine-local compatibility stack used during Docker repair.
+/protected-app/docker-compose.yml

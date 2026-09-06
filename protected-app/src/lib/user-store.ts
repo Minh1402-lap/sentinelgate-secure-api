@@ -20,6 +20,46 @@ export const prismaUserStore: UserStore = {
     if (result.count === 0) return null;
     return asUserRecord(await prisma.user.findUnique({ where: { id } }));
   },
+  async recordFailedLogin(id, threshold, lockUntil) {
+    return prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.update({
+        where: { id },
+        data: {
+          failedLoginAttempts: {
+            increment: 1,
+          },
+        },
+        select: {
+          failedLoginAttempts: true,
+        },
+      });
+
+      if (user.failedLoginAttempts >= threshold) {
+        await transaction.user.update({
+          where: { id },
+          data: {
+            lockedUntil: lockUntil,
+          },
+        });
+      }
+
+      return {
+        failedLoginAttempts: user.failedLoginAttempts,
+        lockedUntil: user.failedLoginAttempts >= threshold ? lockUntil : null,
+        justLocked: user.failedLoginAttempts === threshold,
+      };
+    });
+  },
+
+  async resetLoginFailures(id) {
+    await prisma.user.updateMany({
+      where: { id },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+  },
   async list({ skip, take }) {
     const [users, total] = await prisma.$transaction([
       prisma.user.findMany({ orderBy: { createdAt: "desc" }, skip, take }),

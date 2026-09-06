@@ -9,6 +9,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url().startsWith("mysql://"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must contain at least 32 characters"),
   JWT_EXPIRES_IN: z.string().min(1).default("15m"),
+  JWT_ISSUER: z.string().min(1).default("sentinelgate"),
+  JWT_AUDIENCE: z.string().min(1).default("sentinelvault-api"),
+  CORS_ORIGINS: z.string().min(1).default("http://127.0.0.1:5173"),
+  ARCJET_KEY: z.string().min(1).optional(),
 });
 
 const result = envSchema.safeParse(process.env);
@@ -18,4 +22,9 @@ if (!result.success) {
   throw new Error(`Invalid environment configuration: ${names}`);
 }
 
-export const env = result.data;
+export const env = {
+  ...result.data,
+  CORS_ORIGINS: result.data.CORS_ORIGINS.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+};

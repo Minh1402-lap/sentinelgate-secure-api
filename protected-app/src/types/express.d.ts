@@ -1,9 +1,12 @@
-import type { AccessTokenPayload } from "../services/token.service.js";
+import type { UserRole } from "./user.js";
 
 declare global {
   namespace Express {
     interface Request {
-      auth?: AccessTokenPayload;
+      auth?: {
+        sub: string;
+        role: UserRole;
+      };
     }
   }
 }

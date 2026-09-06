@@ -2,14 +2,20 @@ import { createServer } from "node:http";
 
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
+import { prismaAuditStore } from "./lib/audit-store.js";
 import { prisma } from "./lib/prisma.js";
 import { prismaUserStore } from "./lib/user-store.js";
 
 const app = createApp({
   database: prisma,
+  auditStore: prismaAuditStore,
   userStore: prismaUserStore,
   jwtSecret: env.JWT_SECRET,
   jwtExpiresIn: env.JWT_EXPIRES_IN,
+  jwtIssuer: env.JWT_ISSUER,
+  jwtAudience: env.JWT_AUDIENCE,
+  corsOrigins: env.CORS_ORIGINS,
+  arcjetKey: env.ARCJET_KEY,
 });
 const server = createServer(app);
 let shuttingDown = false;

@@ -2,6 +2,24 @@ import type { ErrorRequestHandler, RequestHandler } from "express";
 
 import { ApiError } from "../lib/api-error.js";
 
+export function safeErrorSummary(error: unknown): { errorType: string } {
+  return {
+    errorType: error instanceof Error ? error.name : typeof error,
+  };
+}
+
+function isJsonParseError(
+  error: unknown,
+): error is SyntaxError & { status: number; type: string } {
+  return (
+    error instanceof SyntaxError &&
+    "status" in error &&
+    error.status === 400 &&
+    "type" in error &&
+    error.type === "entity.parse.failed"
+  );
+}
+
 export const notFoundHandler: RequestHandler = (_request, response) => {
   response.status(404).json({
     success: false,
@@ -22,8 +40,19 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _request, resp
     return;
   }
 
+  if (isJsonParseError(error)) {
+    response.status(400).json({
+      success: false,
+      error: {
+        code: "INVALID_JSON",
+        message: "Request body contains invalid JSON",
+      },
+    });
+    return;
+  }
+
   if (process.env.NODE_ENV !== "test") {
-    console.error("Unhandled request error", error instanceof Error ? error.message : "Unknown error");
+    console.error("Unhandled request error", safeErrorSummary(error));
   }
 
   response.status(500).json({

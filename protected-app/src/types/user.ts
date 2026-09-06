@@ -7,13 +7,14 @@ export interface UserRecord {
   passwordHash: string;
   name: string | null;
   role: UserRole;
+  failedLoginAttempts: number;
   status: UserStatus;
   lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type PublicUser = Omit<UserRecord, "passwordHash" | "lockedUntil">;
+export type PublicUser = Omit<UserRecord, "passwordHash" | "failedLoginAttempts" |"lockedUntil"  >;
 
 export interface UserStore {
   findByEmail(email: string): Promise<UserRecord | null>;
@@ -21,4 +22,10 @@ export interface UserStore {
   create(input: { email: string; passwordHash: string; name?: string }): Promise<UserRecord>;
   updateProfile(id: string, input: { name?: string | null }): Promise<UserRecord | null>;
   list(input: { skip: number; take: number }): Promise<{ users: UserRecord[]; total: number }>;
+  recordFailedLogin(
+    id: string,
+    threshold: number,
+    lockUntil: Date,
+  ): Promise<{ failedLoginAttempts: number; lockedUntil: Date | null; justLocked: boolean }>;
+  resetLoginFailures(id: string): Promise<void>;
 }

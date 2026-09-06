@@ -5,9 +5,13 @@ services:
     container_name: sentinelvault-backend
     restart: unless-stopped
     environment:
+      NODE_ENV: production
       DATABASE_URL: ${DOCKER_DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_ISSUER: ${JWT_ISSUER:-sentinelgate}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-sentinelvault-api}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:5173}
       HOST: 0.0.0.0
       PORT: 3000
     ports:

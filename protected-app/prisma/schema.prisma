@@ -4,9 +4,9 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider               = "prisma-client"
-  output                 = "../generated/prisma"
-  moduleFormat           = "esm"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
 }
 
 datasource db {
@@ -14,16 +14,35 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(uuid())
-  email        String     @unique
-  passwordHash String
-  name         String?
-  role         UserRole   @default(USER)
-  status       UserStatus @default(ACTIVE)
-  lockedUntil  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                  String     @id @default(uuid())
+  email               String     @unique
+  passwordHash        String
+  name                String?
+  role                UserRole   @default(USER)
+  failedLoginAttempts Int        @default(0)
+  status              UserStatus @default(ACTIVE)
+  lockedUntil         DateTime?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  auditLogs           AuditLog[]
+
   @@map("users")
+}
+
+model AuditLog {
+  id        String       @id @default(uuid())
+  actorId   String?
+  action    AuditAction
+  outcome   AuditOutcome
+  ipAddress String?      @db.VarChar(45)
+  userAgent String?      @db.VarChar(512)
+  details   Json?
+  createdAt DateTime     @default(now())
+  actor     User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
 }
 
 enum UserRole {
@@ -34,4 +53,19 @@ enum UserRole {
 enum UserStatus {
   ACTIVE
   DISABLED
+}
+
+enum AuditAction {
+  LOGIN_SUCCEEDED
+  LOGIN_FAILED
+  ACCOUNT_LOCKED
+  PROFILE_UPDATED
+  ADMIN_USERS_LISTED
+  ADMIN_USER_VIEWED
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  DENIED
 }

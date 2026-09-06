@@ -35,4 +35,3 @@ export const requireAdmin: RequestHandler = (request, _response, next) => {
   if (request.auth?.role !== "ADMIN") return next(new ApiError(403, "ADMIN_REQUIRED", "Administrator access is required"));
   next();
 };
-
